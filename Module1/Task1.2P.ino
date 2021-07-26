@@ -29,6 +29,10 @@ void LightSwitch()
 	// Swap state
 	ledState = !ledState;
 	// Print interrupt details
-	Serial.println("\n[INFO]: Motion detected, interrupt fired");
-	Serial.println("[INFO]: LED stated changed to " + (String)ledState);
+	ledState = !ledState;
+	if (ledState == HIGH)
+		Serial.println("[INFO]: Interrupt fired, motion detected");
+	else
+		Serial.println("[INFO]: Interrupt fired, motion no longer detected");
+  	Serial.println("[INFO]: LED stated changed to " + (String)ledState);
 }
