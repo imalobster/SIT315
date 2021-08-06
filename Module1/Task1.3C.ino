@@ -7,6 +7,7 @@ const uint8_t PIN_SWT = 3;
 // States
 volatile bool ledState_a = LOW;
 volatile bool ledState_b = LOW;
+bool motionState = 0;
 
 // Main
 void setup()
@@ -32,10 +33,16 @@ void loop()
 
 void LedSwitch_a()
 {
+  	// Don't switch state if switch is off
   	if (ledState_b == LOW)
-	{
-	  	Serial.println("[INFO]: Interrupt fired, motion detected but switch is off...");
-	  	return;
+    {
+      	// If motion detected while switch is off, don't repeat message (logic via motionState)
+      	// Same could be achieved if function splint into two - one RISING, one FALLING
+		motionState = !motionState;
+		if (!motionState)
+          	return;
+      	Serial.println("[INFO]: Interrupt fired, motion detected but switch is off...");
+      	return;
 	}
 	ledState_a = !ledState_a;
   	digitalWrite(PIN_LEDa, ledState_a);
