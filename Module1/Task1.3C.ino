@@ -34,7 +34,7 @@ void LedSwitch_a()
 {
   	if (ledState_b == LOW)
 	{
-	  	Serial.println("[INFO]: Interrupt fired, but switch is off...");
+	  	Serial.println("[INFO]: Interrupt fired, motion detected but switch is off...");
 	  	return;
 	}
 	ledState_a = !ledState_a;
