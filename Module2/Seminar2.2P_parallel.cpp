@@ -7,7 +7,7 @@
 using namespace std::chrono;
 using namespace std;
 
-#define NUM_THREADS 64
+#define NUM_THREADS 24
 
 // Define struct to hold partition details for each thread completing the number generation task
 struct RngTask
