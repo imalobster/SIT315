@@ -3,10 +3,10 @@ Time taken to populate square matrices: 2 microseconds
 Time taken to multiply square matrices: 3 microseconds
 
 MATRIX SIZE: 100
-Time taken to populate square matrices: 239 microseconds
-Time taken to multiply square matrices: 2564 microseconds
+Time taken to populate square matrices: 230 microseconds
+Time taken to multiply square matrices: 2604 microseconds
 
 MATRIX SIZE: 1000
-Time taken to populate square matrices: 18863 microseconds
-Time taken to multiply square matrices: 2963958 microseconds
+Time taken to populate square matrices: 18113 microseconds
+Time taken to multiply square matrices: 3004258 microseconds
 

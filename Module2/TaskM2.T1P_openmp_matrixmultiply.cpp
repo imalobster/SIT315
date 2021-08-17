@@ -4,6 +4,7 @@
 #include <time.h>
 #include <chrono>
 #include <stdio.h>
+#include <stdlib.h>
 #include <omp.h>
 
 using namespace std::chrono;
@@ -49,12 +50,6 @@ void PrintEquation(int** matrix1, int** matrix2, int** matrix3, int size, bool p
 
 		cout << endl;
 	}
-}
-
-void WriteToFile(int** matrix1, int** matrix2, int** matrix3, int size)
-{
-	ofstream file ("test.txt");
-
 }
 
 void PopulateMatrix(int** matrix, int size)
@@ -113,7 +108,7 @@ int main()
 			int numThreads = threads;
 
 			// Initisalise number generator
-			srand(time(0));
+			srand(time(NULL) * size);
 
 			// Declare empty 2D arrays (matrices)
 			int** m1 = (int**)  malloc(matrixSize * sizeof(int*));
@@ -128,6 +123,7 @@ int main()
 				m3[i] = (int*) malloc(matrixSize * sizeof(int));
 			}
 
+			// Set number of available threads for OpenMP
 			omp_set_num_threads(numThreads);
 
 			// Take current time before populating
@@ -153,13 +149,13 @@ int main()
 			// Print equation (switched to false - only needed for verify) and time taken
 			if (matrixSize <= 10)
 				PrintEquation(m1, m2, m3, matrixSize, false);
-			cout << "MATRIX SIZE: " << size << endl;
+			cout << "MATRIX SIZE: " << size << ", THREADS: " << numThreads << endl;
 			cout << "Time taken to populate square matrices: " << durationPopulate.count() << " microseconds" << endl;
 			cout << "Time taken to multiply square matrices: " << durationMultiply.count() << " microseconds\n" << endl;
 
 			// Redirect stdout to file and call above again
-			freopen("results_openmp.txt", "a", stdout);
-			cout << "MATRIX SIZE: " << size << endl;
+			freopen("results_pthread.txt", "a", stdout);
+			cout << "MATRIX SIZE: " << size << ", THREADS: " << numThreads << endl;
 			cout << "Time taken to populate square matrices: " << durationPopulate.count() << " microseconds" << endl;
 			cout << "Time taken to multiply square matrices: " << durationMultiply.count() << " microseconds\n" << endl;
 

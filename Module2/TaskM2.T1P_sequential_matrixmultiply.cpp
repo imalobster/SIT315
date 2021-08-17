@@ -50,12 +50,6 @@ void PrintEquation(int** matrix1, int** matrix2, int** matrix3, int size, bool p
 	}
 }
 
-void WriteToFile(int** matrix1, int** matrix2, int** matrix3, int size)
-{
-	ofstream file ("test.txt");
-
-}
-
 void PopulateMatrix(int** matrix, int size)
 {
 	for (int i = 0; i < size; i++)
@@ -133,7 +127,7 @@ int main()
 
 		// Print equation (switched to false - only needed for verify) and time taken
 		if (matrixSize <= 10)
-			PrintEquation(m1, m2, m3, matrixSize, false);
+			PrintEquation(m1, m2, m3, matrixSize, true);
 		cout << "MATRIX SIZE: " << size << endl;
 		cout << "Time taken to populate square matrices: " << durationPopulate.count() << " microseconds" << endl;
 		cout << "Time taken to multiply square matrices: " << durationMultiply.count() << " microseconds\n" << endl;
