@@ -82,7 +82,7 @@ void MultiplyMatrices(int** matrix1, int** matrix2, int** matrix3, int size)
 int main()
 {
 	// Define constant for matrix size
-	const int matrixSize = 10;
+	const int matrixSize = 1000;
 
 	// Initisalise number generator
 	srand(time(0));
@@ -100,12 +100,15 @@ int main()
 		m3[i] = (int*) malloc(matrixSize * sizeof(int));
 	}
 
+	// Take current time before populating
+	auto startPopulate = high_resolution_clock::now();
+
 	// Populate first two with random variables
 	PopulateMatrix(m1, matrixSize);
 	PopulateMatrix(m2, matrixSize);
 	
 	// Take current time before multiplication
-	auto start = high_resolution_clock::now();
+	auto startMultiply = high_resolution_clock::now();
 
 	// Multiply first two to produce third matrix
 	MultiplyMatrices(m1, m2, m3, matrixSize);
@@ -113,17 +116,22 @@ int main()
 	// Take current time before multiplication
 	auto stop = high_resolution_clock::now();
 
-	// Calculation duration and cast to microseconds
-	auto duration = duration_cast<microseconds>(stop - start);
+	// Calculation durations and cast to microseconds
+	auto durationPopulate = duration_cast<microseconds>(startMultiply - startPopulate);
+	auto durationMultiply = duration_cast<microseconds>(stop - startMultiply);
 
-	// Print equation and time taken
-	PrintEquation(m1, m2, m3, matrixSize, true);
-	cout << "\nTime taken to multiply square matrices of size " << matrixSize << ": " << duration.count() << " microseconds\n\n" << endl;
+	// Print equation (if less than 10 - formatting issues otherwise) and time taken
+	if (matrixSize <= 10)
+		PrintEquation(m1, m2, m3, matrixSize, true);
+	cout << "\nTime taken to populate square matrices of size " << matrixSize << ": " << durationPopulate.count() << " microseconds" << endl;
+	cout << "\nTime taken to multiply square matrices of size " << matrixSize << ": " << durationMultiply.count() << " microseconds\n" << endl;
 
 	// Redirect stdout to file and call above again
 	freopen("results.txt", "w", stdout);
-	PrintEquation(m1, m2, m3, matrixSize, true);
-	cout << "\nTime taken to multiply square matrices of size " << matrixSize << ": " << duration.count() << " microseconds\n\n" << endl;
+	if (matrixSize <= 10)
+		PrintEquation(m1, m2, m3, matrixSize, true);
+	cout << "\nTime taken to populate square matrices of size " << matrixSize << ": " << durationPopulate.count() << " microseconds" << endl;
+	cout << "\nTime taken to multiply square matrices of size " << matrixSize << ": " << durationMultiply.count() << " microseconds\n" << endl;
 
 	return 0;
 }
