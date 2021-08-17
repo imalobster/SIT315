@@ -81,9 +81,6 @@ void MultiplyMatrices(int** matrix1, int** matrix2, int** matrix3, int size)
 
 int main()
 {
-	// Redirect all of stdout to file
-	freopen("results.txt", "w", stdout);
-
 	// Define constant for matrix size
 	const int matrixSize = 10;
 
@@ -116,13 +113,16 @@ int main()
 	// Take current time before multiplication
 	auto stop = high_resolution_clock::now();
 
-	// Print equation
-	PrintEquation(m1, m2, m3, matrixSize, true);
-
 	// Calculation duration and cast to microseconds
 	auto duration = duration_cast<microseconds>(stop - start);
 
-	// Print time taken
+	// Print equation and time taken
+	PrintEquation(m1, m2, m3, matrixSize, true);
+	cout << "\nTime taken to multiply square matrices of size " << matrixSize << ": " << duration.count() << " microseconds\n\n" << endl;
+
+	// Redirect stdout to file and call above again
+	freopen("results.txt", "w", stdout);
+	PrintEquation(m1, m2, m3, matrixSize, true);
 	cout << "\nTime taken to multiply square matrices of size " << matrixSize << ": " << duration.count() << " microseconds\n\n" << endl;
 
 	return 0;
