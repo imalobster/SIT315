@@ -82,7 +82,7 @@ void MultiplyMatrices(int** matrix1, int** matrix2, int** matrix3, int size)
 int main()
 {
 	// Define constant for matrix size
-	const int matrixSize = 10000;
+	const int matrixSize = 1000;
 
 	// Initisalise number generator
 	srand(time(0));

@@ -1,3 +1,5 @@
 
-Time taken to multiply square matrices of size 1000: 2991475 microseconds
+Time taken to populate square matrices of size 1000: 18404 microseconds
+
+Time taken to multiply square matrices of size 1000: 3051306 microseconds
 
