@@ -159,6 +159,8 @@ int main()
 
 	// Define sizes of matrices
 	int n_sizes[] = { 10, 100, 1000 };
+
+	// Different varying thread counts
 	int n_threads[] = { 2, 8, 16, 24 };
 
 	for (int size : n_sizes)

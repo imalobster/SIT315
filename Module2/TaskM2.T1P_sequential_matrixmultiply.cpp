@@ -26,8 +26,11 @@ void PrintRow(int* array, int size)
 	cout << "|";
 }
 
-void PrintEquation(int** matrix1, int** matrix2, int** matrix3, int size, bool toFile)
+void PrintEquation(int** matrix1, int** matrix2, int** matrix3, int size, bool print)
 {
+	if (!print)
+		return;
+
 	cout << endl;
 	for (int i = 0; i < size; i++)
 	{
@@ -45,7 +48,6 @@ void PrintEquation(int** matrix1, int** matrix2, int** matrix3, int size, bool t
 
 		cout << endl;
 	}
-	cout << endl;
 }
 
 void WriteToFile(int** matrix1, int** matrix2, int** matrix3, int size)
@@ -129,9 +131,9 @@ int main()
 		auto durationPopulate = duration_cast<microseconds>(startMultiply - startPopulate);
 		auto durationMultiply = duration_cast<microseconds>(stop - startMultiply);
 
-		// Print equation (if less than 10 - formatting issues otherwise) and time taken
+		// Print equation (switched to false - only needed for verify) and time taken
 		if (matrixSize <= 10)
-			PrintEquation(m1, m2, m3, matrixSize, true);
+			PrintEquation(m1, m2, m3, matrixSize, false);
 		cout << "MATRIX SIZE: " << size << endl;
 		cout << "Time taken to populate square matrices: " << durationPopulate.count() << " microseconds" << endl;
 		cout << "Time taken to multiply square matrices: " << durationMultiply.count() << " microseconds\n" << endl;
