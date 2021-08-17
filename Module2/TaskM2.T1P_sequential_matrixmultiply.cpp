@@ -127,7 +127,7 @@ int main()
 
 		// Print equation (switched to false - only needed for verify) and time taken
 		if (matrixSize <= 10)
-			PrintEquation(m1, m2, m3, matrixSize, true);
+			PrintEquation(m1, m2, m3, matrixSize, false);
 		cout << "MATRIX SIZE: " << size << endl;
 		cout << "Time taken to populate square matrices: " << durationPopulate.count() << " microseconds" << endl;
 		cout << "Time taken to multiply square matrices: " << durationMultiply.count() << " microseconds\n" << endl;

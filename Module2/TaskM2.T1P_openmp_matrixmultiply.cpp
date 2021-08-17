@@ -154,7 +154,7 @@ int main()
 			cout << "Time taken to multiply square matrices: " << durationMultiply.count() << " microseconds\n" << endl;
 
 			// Redirect stdout to file and call above again
-			freopen("results_pthread.txt", "a", stdout);
+			freopen("results_openmp.txt", "a", stdout);
 			cout << "MATRIX SIZE: " << size << ", THREADS: " << numThreads << endl;
 			cout << "Time taken to populate square matrices: " << durationPopulate.count() << " microseconds" << endl;
 			cout << "Time taken to multiply square matrices: " << durationMultiply.count() << " microseconds\n" << endl;
