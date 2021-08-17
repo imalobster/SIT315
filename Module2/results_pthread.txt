@@ -1,48 +1,48 @@
 MATRIX SIZE: 10, THREADS: 2
-Time taken to populate square matrices: 185 microseconds
-Time taken to multiply square matrices: 157 microseconds
+Time taken to populate square matrices: 176 microseconds
+Time taken to multiply square matrices: 165 microseconds
 
 MATRIX SIZE: 10, THREADS: 8
-Time taken to populate square matrices: 473 microseconds
-Time taken to multiply square matrices: 390 microseconds
+Time taken to populate square matrices: 426 microseconds
+Time taken to multiply square matrices: 369 microseconds
 
 MATRIX SIZE: 10, THREADS: 16
-Time taken to populate square matrices: 806 microseconds
-Time taken to multiply square matrices: 694 microseconds
+Time taken to populate square matrices: 765 microseconds
+Time taken to multiply square matrices: 973 microseconds
 
 MATRIX SIZE: 10, THREADS: 24
-Time taken to populate square matrices: 1153 microseconds
-Time taken to multiply square matrices: 1009 microseconds
+Time taken to populate square matrices: 1051 microseconds
+Time taken to multiply square matrices: 880 microseconds
 
 MATRIX SIZE: 100, THREADS: 2
-Time taken to populate square matrices: 314 microseconds
-Time taken to multiply square matrices: 2224 microseconds
+Time taken to populate square matrices: 249 microseconds
+Time taken to multiply square matrices: 2036 microseconds
 
 MATRIX SIZE: 100, THREADS: 8
-Time taken to populate square matrices: 433 microseconds
-Time taken to multiply square matrices: 1111 microseconds
+Time taken to populate square matrices: 456 microseconds
+Time taken to multiply square matrices: 933 microseconds
 
 MATRIX SIZE: 100, THREADS: 16
-Time taken to populate square matrices: 788 microseconds
-Time taken to multiply square matrices: 967 microseconds
+Time taken to populate square matrices: 780 microseconds
+Time taken to multiply square matrices: 946 microseconds
 
 MATRIX SIZE: 100, THREADS: 24
-Time taken to populate square matrices: 1111 microseconds
-Time taken to multiply square matrices: 1153 microseconds
+Time taken to populate square matrices: 1124 microseconds
+Time taken to multiply square matrices: 1309 microseconds
 
 MATRIX SIZE: 1000, THREADS: 2
-Time taken to populate square matrices: 9488 microseconds
-Time taken to multiply square matrices: 1930732 microseconds
+Time taken to populate square matrices: 9683 microseconds
+Time taken to multiply square matrices: 1859201 microseconds
 
 MATRIX SIZE: 1000, THREADS: 8
-Time taken to populate square matrices: 3197 microseconds
-Time taken to multiply square matrices: 584886 microseconds
+Time taken to populate square matrices: 3092 microseconds
+Time taken to multiply square matrices: 566218 microseconds
 
 MATRIX SIZE: 1000, THREADS: 16
-Time taken to populate square matrices: 2904 microseconds
-Time taken to multiply square matrices: 441245 microseconds
+Time taken to populate square matrices: 3053 microseconds
+Time taken to multiply square matrices: 437775 microseconds
 
 MATRIX SIZE: 1000, THREADS: 24
-Time taken to populate square matrices: 2659 microseconds
-Time taken to multiply square matrices: 436189 microseconds
+Time taken to populate square matrices: 2733 microseconds
+Time taken to multiply square matrices: 441978 microseconds
 
