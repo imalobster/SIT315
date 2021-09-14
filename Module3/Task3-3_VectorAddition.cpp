@@ -1,6 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <CL/cl.h>
+#include <iostream>
+#include <cstdlib>
+#include <time.h>
+#include <chrono>
+
+using namespace std::chrono;
+using namespace std;
 
 // Define printing to be on/off (1/0)
 #define PRINT 1
@@ -95,6 +102,9 @@ int main(int argc, char **argv)
 	setup_kernel_memory();
 	copy_kernel_args();
 
+	// Get the current time before vector assignment
+	auto start = high_resolution_clock::now();
+
 	// Enqueues the kernel to start executing the commands detailed in the program's queue. It requires the queue and kernel (set up previously),
 	// the dimensions of the work-items (in this case 1), offset if applicable, the global work-size array defined above, local work-size if
 	// applicable, how many events need to finish before execution can begin (0 in this case), the events to wait on (again, NULL), and the event handler
@@ -109,8 +119,18 @@ int main(int argc, char **argv)
 	// (again, NULL), and the event handler
 	clEnqueueReadBuffer(queue, bufV3, CL_TRUE, 0, SZ * sizeof(int), &v3[0], 0, NULL, NULL);
 
+	// Get the current time after vector assignment
+	auto stop = high_resolution_clock::now();
+
 	// Print the resulting vector
 	print(v3, SZ);
+
+	// Obtain the difference between start and stop times, then cast to microseconds format
+	auto duration = duration_cast<microseconds>(stop - start);
+
+	// Print the time taken
+	cout << "Time taken by function: "
+		 << duration.count() << " microseconds" << endl;
 
 	// Frees memory of all variables declared above
 	free_memory();
