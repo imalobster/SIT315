@@ -51,20 +51,31 @@ void PrintEquation(int** matrix1, int** matrix2, int** matrix3, int size, bool p
 	}
 }
 
-void PopulateMatrix(int** matrix, int size)
+void InitialiseMatrix(int** matrix, int rows, int cols, int totalSize)
 {
-	for (int i = 0; i < size; i++)
+    matrix = (int**)malloc(rows * cols * sizeof(int*));
+    int *tempRow = (int*)malloc(rows * cols * sizeof(int));
+
+    for (int i = 0; i < totalSize; i++)
+    {
+        matrix[i] = &tempRow[i * cols];
+    }
+}
+
+void PopulateMatrix(int** matrix, int rows, int cols)
+{
+	for (int i = 0; i < rows; i++)
 	{
-		for (int j = 0; j < size; j++)
+		for (int j = 0; j < cols; j++)
 		{
 			matrix[i][j] = rand() % 10;
 		}
 	}
 }
 
-void MultiplyMatrices(int** matrix1, int** matrix2, int** matrix3, int size)
+void MultiplyMatrices(int** matrix1, int** matrix2, int** matrix3, int rows, int size)
 {
-	for (int i = 0; i < size; i++)
+	for (int i = 0; i < rows; i++)
 	{
 		for (int j = 0; j < size; j++)
 		{
@@ -77,90 +88,216 @@ void MultiplyMatrices(int** matrix1, int** matrix2, int** matrix3, int size)
 	}
 }
 
+void print( int** A, int rows, int cols) {
+  for(long i = 0 ; i < rows; i++) { //rows
+        for(long j = 0 ; j < cols; j++) {  //cols
+            printf("%d ",  A[i][j]); // print the cell value
+        }
+        printf("\n"); //at the end of the row, print a new line
+    }
+    printf("----------------------------\n");
+}
+
+//Function for creating and initializing a matrix, using a pointer to pointers
+void init(int** &matrix, int rows, int cols, int size, bool initialise) 
+{
+    matrix = (int **) malloc(sizeof(int*) * rows * cols);  
+    int* temp = (int *) malloc(sizeof(int) * cols * rows); 
+
+    for(int i = 0 ; i < size ; i++) {
+        matrix[i] = &temp[i * cols];
+    }
+  
+    if(!initialise) return;
+
+    for(long i = 0 ; i < rows; i++) {
+        for(long j = 0 ; j < cols; j++) {
+            matrix[i][j] = rand() % 10; 
+        }
+    }
+}
+
+int **m1;
+int **m2;
+int **m3;
+int size = 3;
 int main(int argc, char** argv)
 {
 	// Initalise MPI variables 
-	int numtasks, rank, name_len, tag=1;
-	// Define char array for processor name
-	char name[MPI_MAX_PROCESSOR_NAME];
+	int numtasks, rank;
 	// Initialize the MPI environment
-	MPI_Init(&argc,&argv);
+	MPI_Init(&argc, &argv);
 	// Get the number of tasks/process
 	MPI_Comm_size(MPI_COMM_WORLD, &numtasks);
 	// Get the rank
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	// Find the processor name
-	MPI_Get_processor_name(name, &name_len);
 
-	// Define list of sizes to evaluate performance with
-	int sizes[] = { 10, 100, 1000 };
+    // Generate random seed using time
+    srand(time(0)); 
+    
+    // Take current time before populating
+    auto startPopulate = high_resolution_clock::now();
 
-	// Loop through each size
-	for (int size : sizes)
-	{
-		// Get length per available ranks
-		int length = size/numtasks;
+    int **m1_sub;
 
-		// Generate random seed using time
-		srand(time(0));
-		
-		// Define and allocate sub-matrices memory for all ranks
-		int** m1_sub = (int**)  malloc(length * sizeof(int*));
-		int** m2_sub = (int**)  malloc(length * sizeof(int*));
-		int** m3_sub = (int**)  malloc(length * sizeof(int*));
+    // Allocate and populate main matrices for head only
+    if (rank == masterRank)
+    {
+        int broadcast_size = size * size;
+        int scatter_rows = size / numtasks;
+        //scatter_rows += size % numtasks;
+        int scatter_size = broadcast_size / numtasks;
+        //scatter_size += size % numtasks;
 
-		// Define main matrices for all ranks
-		int **m1;
-		int **m2;
-		int **m3;
+        init(m1, size, size, size, true);
+        init(m2, size, size, size, true);
+        init(m3, size, size, size, true);
+        
+        //print(m1, size, size);
+        // Populate first two with random variables
+        //PopulateMatrix(m1, size, size);
+        //PopulateMatrix(m2, size, size);
 
-		// Take current time before populating
-		auto startPopulate = high_resolution_clock::now();
+        int sendcounts[numtasks];
+        int displs[numtasks];
+        int res = size % numtasks;
+        int size_p_process = size / numtasks;
+        int increment = 0;
 
-		// Allocate and populate main matrices for head only
-		if (rank == masterRank)
-		{
-			// Create array for each element of above arrays 
-			for (int i = 0; i < size; i++)
-			{
-				m1[i] = (int*) malloc(length * sizeof(int));
-				m2[i] = (int*) malloc(length * sizeof(int));
-				m3[i] = (int*) malloc(length * sizeof(int));
-			}
-			// Populate first two with random variables
-			PopulateMatrix(m1, size);
-			PopulateMatrix(m2, size);
-		}
+        for (int p_id = 0; p_id < numtasks; p_id++)
+        {
+            displs[p_id] = increment;
+            if (broadcast_size % numtasks != 0 && p_id == 0)
+                sendcounts[p_id] = scatter_size + (broadcast_size % numtasks);
+            else
+                sendcounts[p_id] = scatter_size;
+            increment += sendcounts[p_id];
+        }
 
-		// Start timer for vector addition process
-		auto start = high_resolution_clock::now();
+        //printf("rank %d sendcount %d\n", rank, sendcounts[rank]);
+        //printf("rank %d displs %d\n", rank, displs[rank]);
 
-		// Scatter even portion of data from v1 and v2 in head to sub vectors in all nodes
-		MPI_Scatter(m1, length, MPI_INT, m1_sub, length, MPI_INT, masterRank, MPI_COMM_WORLD);
-		MPI_Scatter(m2, length, MPI_INT, m2_sub, length, MPI_INT, masterRank, MPI_COMM_WORLD);
+        init(m1_sub, scatter_rows, size, size, false);
 
-		// Multiply first two to produce third matrix
-		MultiplyMatrices(m1_sub, m2_sub, m3_sub, length);
+        print(m1, size, size);
+        MPI_Scatterv(&m1[0][0], sendcounts, displs, MPI_INT, &m1_sub[0][0], sendcounts[rank], MPI_INT, masterRank, MPI_COMM_WORLD);
+        print(m1_sub, size, size);
+        
 
-		// Gather results from all nodes and combine into v3 on head
-		MPI_Gather(m3_sub, length, MPI_INT, m3, length, MPI_INT, masterRank, MPI_COMM_WORLD);
+        printf("rank %d hi\n", rank);
+        //MPI_Scatter(&m1[0][0], scatter_size, MPI_INT, &m1, 0, MPI_INT, masterRank, MPI_COMM_WORLD);
+        MPI_Bcast(&m2[0][0], broadcast_size, MPI_INT, masterRank, MPI_COMM_WORLD);
 
-		// Calculation durations and cast to microseconds
-		auto durationPopulate = duration_cast<microseconds>(startMultiply - startPopulate);
-		auto durationMultiply = duration_cast<microseconds>(stop - startMultiply);
+        printf("rank %d hi\n", rank);
 
-		// Print total time taken on head node
-		if (rank == masterRank)
-		{
-			// Print equation (switched to false - only needed for verify) and time taken
-			if (matrixSize <= 10)
-				PrintEquation(m1, m2, m3, matrixSize, false);
+        MultiplyMatrices(m1_sub, m2, m3, scatter_rows + 1, size);
 
-			cout << "MATRIX SIZE: " << size << endl;
-			cout << "Time taken to populate square matrices: " << durationPopulate.count() << " microseconds" << endl;
-			cout << "Time taken to multiply square matrices: " << durationMultiply.count() << " microseconds\n" << endl;
-		}
-	}
+        printf("rank %d hi\n", rank);
+
+        MPI_Gatherv(MPI_IN_PLACE, sendcounts[rank], MPI_INT, &m3[0][0], sendcounts, displs, MPI_INT, masterRank, MPI_COMM_WORLD);
+    }
+    else
+    {
+        int broadcast_size = size * size;
+        int scatter_rows = size/numtasks;
+        //scatter_rows += size % numtasks;
+        int scatter_size = broadcast_size / numtasks;
+        //printf("%d, %d, %d\n", broadcast_size, numtasks, scatter_size);
+
+        init(m1, scatter_rows, size, size, true);
+        init(m2, size, size, size, false);
+        init(m3, scatter_rows, size, size, false);
+        
+
+        //PopulateMatrix(m1, scatter_rows, size);
+
+        int sendcounts[numtasks];
+        int displs[numtasks];
+        int res = size % numtasks;
+        int size_p_process = size / numtasks;
+        int increment = 0;
+
+        for (int p_id = 0; p_id < numtasks; p_id++)
+        {
+            displs[p_id] = increment;
+            if (broadcast_size % numtasks != 0 && p_id == 0)
+                sendcounts[p_id] = scatter_size + (broadcast_size % numtasks);
+            else
+                sendcounts[p_id] = scatter_size;
+            increment += sendcounts[p_id];
+        }
+        //printf("rank %d sendcount %d\n", rank, sendcounts[rank]);
+        //printf("rank %d displs %d\n", rank, displs[rank]);
+
+        MPI_Scatterv(NULL, sendcounts, displs, MPI_INT, &m1[0][0], sendcounts[rank], MPI_INT, masterRank, MPI_COMM_WORLD);
+
+        //print(m1, size, size);
+
+        printf("rank %d hi\n", rank);
+
+        //MPI_Scatter(NULL, scatter_size, MPI_INT, &m1[0][0], scatter_size, MPI_INT, masterRank, MPI_COMM_WORLD);
+        MPI_Bcast(&m2[0][0], broadcast_size, MPI_INT, masterRank, MPI_COMM_WORLD);
+
+        printf("rank %d hi\n", rank);
+
+        //print(m2, size, size);
+
+        MultiplyMatrices(m1, m2, m3, scatter_rows, size);
+
+        print(m3, size, size);
+
+        MPI_Gatherv(&m3[0][0], sendcounts[rank], MPI_INT, NULL, sendcounts, displs, MPI_INT, masterRank, MPI_COMM_WORLD);
+    }
+    
+
+    // Start timer for vector addition process
+    auto startMultiply = high_resolution_clock::now();
+
+
+
+    // Scatter even portion of data from v1 and v2 in head to sub vectors in all nodes
+    
+    
+
+
+    // Multiply first two to produce third matrix
+
+
+    if (rank == masterRank)
+    {
+        //print(m3, size, size);
+        
+    }
+    else
+    {
+        
+        //print(m1, size, size);
+    }
+    
+
+    // Retrieve finish time
+    auto stop = high_resolution_clock::now();
+
+    // Calculation durations and cast to microseconds
+    auto durationPopulate = duration_cast<microseconds>(startMultiply - startPopulate);
+    auto durationMultiply = duration_cast<microseconds>(stop - startMultiply);
+
+    // Print total time taken on head node
+    if (rank == masterRank)
+    {
+        // Print equation (switched to false - only needed for verify) and time taken
+        if (size <= 10)
+            PrintEquation(m1, m2, m3, size, true);
+
+        cout << "MATRIX SIZE: " << size << endl;
+        cout << "Time taken to populate square matrices: " << durationPopulate.count() << " microseconds" << endl;
+        cout << "Time taken to multiply square matrices: " << durationMultiply.count() << " microseconds\n" << endl;
+    }
+    else
+    {
+        //print(m3, size, size);    
+    }
+    
 	// Finalize the MPI environment
 	MPI_Finalize();
 }

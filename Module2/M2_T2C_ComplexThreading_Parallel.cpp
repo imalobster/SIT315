@@ -35,7 +35,7 @@ void InitialiseDataPoints(DataPoint *vectors, int size, int maxRange)
 {
 	#pragma omp parallel shared(vectors) firstprivate(size, maxRange)
 	{
-		#pragma omp for
+		#pragma omp for schedule(auto)
 		for (int i = 0; i < size; i++)
 		{
 			// Generate random coordinates between 0 and max_range for each data point
@@ -78,7 +78,7 @@ bool AssignCentroids(DataPoint *vectors, CentroidPoint *centroids, int vSize, in
 	// Calaculate distance and assign data points to centroid
 	#pragma omp parallel shared(vectors, centroids) firstprivate(vSize, cSize)
 	{
-		#pragma omp for collapse(2)
+		#pragma omp for collapse(2) schedule(auto)
 		for (int i = 0; i < vSize; i++)
 		{
 			// Loop through all centroids
