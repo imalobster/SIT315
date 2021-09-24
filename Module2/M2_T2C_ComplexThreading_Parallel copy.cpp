@@ -11,29 +11,21 @@ using namespace std::chrono;
 using namespace std;
 
 // Define number of threads
-const int NUM_THREADS = 8;
+const int NUM_THREADS = 24;
 
 // Define struct to hold coordinates of each data point
 struct DataPoint
 {
-	int x;
-	int y;
+	float x;
+	float y;
 	float curDistance;
 	int clusterId;
 };
 
-// Define struct to hold coordinates of each centroid point
-struct CentroidPoint
-{
-	float x;
-	float y;
-	int clusterId;
-};
-
 // Initialises vectors with random values in preparation for clustering algorithm
-void InitialiseDataPoints(DataPoint *vectors, int size, int maxRange)
+void InitialiseDataPoints(DataPoint *vectors, int size, int maxRange, bool centroid)
 {
-	#pragma omp parallel shared(vectors) firstprivate(size, maxRange)
+	#pragma omp parallel
 	{
 		#pragma omp for
 		for (int i = 0; i < size; i++)
@@ -42,42 +34,32 @@ void InitialiseDataPoints(DataPoint *vectors, int size, int maxRange)
 			vectors[i].x = rand() % maxRange;
 			vectors[i].y = rand() % maxRange;
 			vectors[i].curDistance = maxRange + 1.0;
+			
+			// If initialising centroid, assign id to each
+			if (centroid)
+			{
+				vectors[i].clusterId = i;
+			}
 		}
 	}
 }
 
-// Initialises centroids with random values in preparation for clustering algorithm
-void InitialiseCentroidPoints(CentroidPoint *centroids, int size, int maxRange)
-{
-	#pragma omp parallel shared(centroids) firstprivate(size, maxRange)
-	{
-		#pragma omp for schedule(auto)
-		for (int i = 0; i < size; i++)
-		{
-			// Generate random coordinates between 0 and max_range for each data point
-			centroids[i].x = rand() % maxRange;
-			centroids[i].y = rand() % maxRange;
-			centroids[i].clusterId = i;
-		}
-	}
-}
-
-// Calculates the euclidian distance between a data point and a centroid point
-float CalculateDistance(DataPoint p1, CentroidPoint p2)
+// Calculates the euclidian distance between two points
+float CalculateDistance(DataPoint p1, DataPoint p2)
 {
 	float result = sqrt(pow(p2.x - p1.x, 2) + pow(p2.y - p1.y, 2));
 	return result;
 }
 
 // Assign data points to a new centroid based on their euclidian distance
-bool AssignCentroids(DataPoint *vectors, CentroidPoint *centroids, int vSize, int cSize)
+bool AssignCentroids(DataPoint *vectors, DataPoint *centroids, int vSize, int cSize, int maxRange)
 {
 	// Declare boolean to determine if any points changed cluster
 	bool changed = false;
 
-	// Calaculate distance and assign data points to centroid
-	#pragma omp parallel shared(vectors, centroids) firstprivate(vSize, cSize)
+	#pragma omp parallel
 	{
+		// Calaculate distance and assign data points to centroid
 		#pragma omp for collapse(2)
 		for (int i = 0; i < vSize; i++)
 		{
@@ -90,6 +72,7 @@ bool AssignCentroids(DataPoint *vectors, CentroidPoint *centroids, int vSize, in
 				// If new distance is smaller than current distance, assign clusterId
 				if (newDistance < vectors[i].curDistance)
 				{
+					vectors[i].curDistance = newDistance;
 					int oldClusterId = vectors[i].clusterId;
 					vectors[i].clusterId = centroids[j].clusterId;
 
@@ -106,17 +89,16 @@ bool AssignCentroids(DataPoint *vectors, CentroidPoint *centroids, int vSize, in
 }
 
 // Calculates new mean of centroids after new points assigned (returns true if no changes)
-void CalculateNewCentroids(DataPoint *vectors, CentroidPoint *centroids, int vSize, int cSize)
+void CalculateNewCentroids(DataPoint *vectors, DataPoint *centroids, int vSize, int cSize)
 {
-	unsigned long totalReduction = 0;
-	#pragma omp parallel shared(vectors, centroids) firstprivate(vSize, cSize)
+	#pragma omp parallel
 	{
-		#pragma omp for schedule(auto)
+		#pragma omp for
 		for (int j = 0; j < cSize; j++)
 		{
 			// Loop through all points in current cluster and sum their x and y
-			int xSum = 0;
-			int ySum = 0;
+			float xSum = 0.0;
+			float ySum = 0.0;
 			int count = 0;
 
 			for (int i = 0; i < vSize; i++)
@@ -129,15 +111,8 @@ void CalculateNewCentroids(DataPoint *vectors, CentroidPoint *centroids, int vSi
 				}
 			}
 			// Calculate new x and y values based on mean sum
-			centroids[j].x = (float)xSum / count;
-			centroids[j].y = (float)ySum / count;
-		}
-
-		// Update each data points distance to assigned centroid
-		#pragma omp for schedule(auto)
-		for (int i = 0; i < vSize; i++)
-		{
-			vectors[i].curDistance = CalculateDistance(vectors[i], centroids[vectors[i].clusterId]);
+			centroids[j].x = xSum / count;
+			centroids[j].y = ySum / count;
 		}
 	}
 }
@@ -151,28 +126,33 @@ int main(){
 		// Define count of k-means centroids
 		int k = 3;
 		// Define max range of coordinates
-		int range = 1000;
+		int range = 1000000;
 
 		// Set random seed based on current time
 		srand(time(0));
 
 		// Define pointer for data point and centroids vector (as well as centroidsBefore to compare the change)
 		DataPoint *vectors;
-		CentroidPoint *centroids;
+		DataPoint *centroids;
+		DataPoint *centroidsBefore;
 
 		// Get the current time before clustering algorithm begins
 		auto start = high_resolution_clock::now();
 
 		// Allocate memory to vectors (I ran into issues using malloc for size greater than 924 so resorted to 'new')
 		vectors = new DataPoint[size];
-		centroids = new CentroidPoint[k];
+		centroids = new DataPoint[k];
+		centroidsBefore = new DataPoint[k];
 
-		// Set number of threads for OpenMP
+		// Set number of threads for omp
 		omp_set_num_threads(NUM_THREADS);
 
 		// Initialise random data points and centroids
-		InitialiseDataPoints(vectors, size, range);
-		InitialiseCentroidPoints(centroids, k, range);
+		InitialiseDataPoints(vectors, size, range, false);
+		InitialiseDataPoints(centroids, k, range, true);
+
+		// Store original values of centroids
+		centroidsBefore = centroids;
 
 		// Run clustering algorithm until convergence is reach
 		bool convergence = false;
@@ -180,7 +160,7 @@ int main(){
 		while (!convergence)
 		{
 			// Assign data points to centroids (if nothing changes, convergence will be set to true)
-			convergence = AssignCentroids(vectors, centroids, size, k);
+			convergence = AssignCentroids(vectors, centroids, size, k, range);
 
 			// Recalculate cluster centroids provided we haven't converged
 			if (!convergence)
@@ -197,21 +177,6 @@ int main(){
 
 		cout << "Size " << size << " execution time: "
 			<< duration.count() << " microseconds" << endl;
-
-
-		bool print = false;
-		if (print)
-		{
-			for (int i = 0; i < size; i++)
-			{
-				printf("%d, %d, %d \n", vectors[i].x, vectors[i].y, vectors[i].clusterId);
-			}
-			printf("\n");
-			for (int i = 0; i < k; i++)
-			{
-				printf("%f, %f, %d \n", centroids[i].x, centroids[i].y, centroids[i].clusterId);
-			}
-		}
 	}
 	return 0;
 }
