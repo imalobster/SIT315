@@ -151,7 +151,7 @@ int main(int argc, char** argv)
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 		
 	// Define range of sizes to test (i.e how many data points)
-	int n_sizes[] = { 1, 1, 10, 100, 1000, 10000, 100000, 1000000 };
+	int n_sizes[] = { 1, 1, 10, 10, 100, 1000, 10000, 100000, 1000000 };
 
 	for (int size : n_sizes)
 	{

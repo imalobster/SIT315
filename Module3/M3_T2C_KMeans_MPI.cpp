@@ -113,18 +113,20 @@ bool CalculateNewCentroids(DataPoint *vectors, CentroidPoint *centroids, int vSi
 				count++;
 			}
 		}
-		
-		// Get existing x and y values
-		float oldX = centroids[j].x;
-		float oldY = centroids[j].y;
+		if (count > 0)
+		{
+			// Get existing x and y values
+			float oldX = centroids[j].x;
+			float oldY = centroids[j].y;
 
-		// Calculate new x and y values based on mean sum
-		centroids[j].x = (float)xSum / count;
-		centroids[j].y = (float)ySum / count;
+			// Calculate new x and y values based on mean sum
+			centroids[j].x = (float)xSum / count;
+			centroids[j].y = (float)ySum / count;
 
-		// Check if they changed by epsilon value and if so record that change
-		float e = 0.005f;
-		centroidChange[j] = ((fabs(oldX - centroids[j].x) > e) || (fabs(oldY - centroids[j].y) > e));
+			// Check if they changed by epsilon value and if so record that change
+			float e = 0.005f;
+			centroidChange[j] = ((fabs(oldX - centroids[j].x) > e) || (fabs(oldY - centroids[j].y) > e));
+		}
 	}
 
 	// If change detected then return false (since convergence will thus equal false)
@@ -168,7 +170,7 @@ int main(int argc, char** argv)
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 		
 	// Define range of sizes to test (i.e how many data points)
-	int n_sizes[] = { 100, 1000, 10000, 100000 };
+	int n_sizes[] = { 1, 1, 10, 10, 100, 1000, 10000, 100000, 1000000 };
 
 	for (int size : n_sizes)
 	{
