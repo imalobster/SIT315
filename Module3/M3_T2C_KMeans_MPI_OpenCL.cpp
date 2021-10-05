@@ -442,7 +442,7 @@ void setup_update_kernel_memory(int size, int k)
 
 void copy_assign_kernel_args(int range)
 {
-    //ToDo: Add comment (what is the purpose of clSetKernelArg function? What are its arguments?)
+    // Pass the addresses of the structures needs for the vector assignment kernel
     clSetKernelArg(kernelAssign, 0, sizeof(int), (void *)&range);
     clSetKernelArg(kernelAssign, 1, sizeof(cl_mem), (void *)&bufV1_sub);
     clSetKernelArg(kernelAssign, 2, sizeof(cl_mem), (void *)&bufC1);
@@ -457,7 +457,7 @@ void copy_assign_kernel_args(int range)
 
 void copy_update_kernel_args(int size)
 {
-    //ToDo: Add comment (what is the purpose of clSetKernelArg function? What are its arguments?)
+    // Pass the addresses of the structures needs for the centroid update kernel
     clSetKernelArg(kernelUpdate, 0, sizeof(int), (void *)&size);
     clSetKernelArg(kernelUpdate, 1, sizeof(cl_mem), (void *)&bufV1);
     clSetKernelArg(kernelUpdate, 2, sizeof(cl_mem), (void *)&bufC1);
